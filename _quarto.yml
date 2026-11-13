@@ -1,0 +1,21 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - index.qmd
+  resources:
+    - assets/charger-explorer.js
+    - data/derived/charger_data.json
+website:
+  title: "Where the UK plugs in"
+  navbar: false
+  page-footer:
+    left: "[Kathryn Hopkins](https://aloysius109.github.io/) | Data as at 1 July 2026"
+    right: "Source: DfT | Open Government Licence v3.0"
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: false
+    smooth-scroll: true
+    embed-resources: false
