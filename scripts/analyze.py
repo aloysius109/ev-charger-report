@@ -98,18 +98,32 @@ def plot_style(ax):
 
 
 def charts(data, regions, power):
-    fig, ax = plt.subplots(figsize=(10, 5.2), layout="constrained")
+    fig, (ax_total, ax_rapid) = plt.subplots(ncols=2, figsize=(12, 6.3), sharey=True, layout="constrained", gridspec_kw={"width_ratios": [1.12, 1]})
     chosen = ["United Kingdom", "Northern Ireland", "North West", "Yorkshire and The Humber", "East Midlands", "North East", "East of England", "South West", "West Midlands", "South East", "Wales", "Scotland", "London"]
     latest = regions.loc[regions.date == "2026-07-01"].set_index("area").reindex(chosen).dropna().sort_values("total_per_100k")
     colors = [GOLD if area == "London" else TEAL if area in {"United Kingdom", "Wales", "Scotland", "Northern Ireland"} else "#8fb6a8" for area in latest.index]
-    ax.barh(latest.index, latest.total_per_100k, color=colors, height=.68)
-    ax.axvline(174.9, color="#7f8e89", lw=1.3, ls=(0,(4,4)))
-    ax.text(178, -.7, "UK average 174.9", color=MUTED, fontsize=8)
-    ax.set_xlabel("Public EV chargers per 100,000 residents", color=MUTED, fontsize=9)
-    plot_style(ax)
+    y = range(len(latest))
+    total_bars = ax_total.barh(y, latest.total_per_100k, color=colors, height=.68)
+    rapid_bars = ax_rapid.barh(y, latest.rapid_per_100k, color=colors, height=.68)
+    ax_total.set_yticks(list(y), labels=latest.index)
+    ax_rapid.tick_params(axis="y", left=False, labelleft=False)
+    ax_total.set_xlim(0, 380)
+    ax_rapid.set_xlim(0, 72)
+    ax_total.axvline(174.9, color="#7f8e89", lw=1.2, ls=(0,(4,4)))
+    ax_rapid.axvline(41.7, color="#7f8e89", lw=1.2, ls=(0,(4,4)))
+    ax_total.text(180, -.75, "UK 174.9", color=MUTED, fontsize=8)
+    ax_rapid.text(43, -.75, "UK 41.7", color=MUTED, fontsize=8)
+    ax_total.set_xlabel("All chargers per 100,000 residents", color=MUTED, fontsize=9)
+    ax_rapid.set_xlabel("Rapid or above per 100,000", color=MUTED, fontsize=9)
+    ax_total.tick_params(axis="y", colors=INK, labelsize=8, length=0, pad=6)
+    for ax in (ax_total, ax_rapid):
+        ax.spines[["top", "right", "left", "bottom"]].set_visible(False)
+        ax.spines["bottom"].set_color(GRID)
+        ax.tick_params(axis="x", colors=MUTED, labelsize=8, length=0, pad=6)
+        ax.grid(axis="x", color=GRID, linewidth=.8)
+        ax.set_axisbelow(True)
     fig.savefig(ASSETS / "regional-coverage.svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
-
     fig, ax = plt.subplots(figsize=(9.6, 4.6), layout="constrained")
     labels = list(power.keys())
     values = list(power.values())

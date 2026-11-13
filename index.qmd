@@ -37,7 +37,7 @@ The UK had **121,171 public electric-vehicle chargers** on 1 July 2026. That wor
 
 London had the highest regional provision overall, at **345.1 chargers per 100,000 people**. But only **27.9 per 100,000** were rapid or ultra-rapid. Scotland had fewer chargers overall, at 231.6 per 100,000, yet more than twice London’s rapid-and-above rate: 59.1 per 100,000.
 
-![Public EV chargers per 100,000 residents by UK country and English region, 1 July 2026.](assets/regional-coverage.svg){fig-alt="London has the highest total charger rate, Scotland is next, and Northern Ireland has the lowest. The UK average is 174.9 chargers per 100,000 residents."}
+![Public EV chargers and rapid-or-above chargers per 100,000 residents by UK country and English region, 1 July 2026.](assets/regional-coverage.svg){fig-alt="London has the highest total charger rate but a below-average rapid-or-above rate. Scotland has the next-highest total rate and the highest rapid-or-above rate. Northern Ireland has the lowest total rate."}
 
 The number of plugs alone does not describe how useful a network is for a particular trip. DfT classifies chargers from standard (3kW to under 8kW) through standard plus, rapid (50kW to under 150kW) and ultra-rapid (150kW and above). Almost half of UK public chargers were in the standard band.
 
