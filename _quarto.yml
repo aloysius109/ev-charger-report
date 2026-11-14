@@ -8,6 +8,14 @@ project:
     - data/derived/charger_data.json
 website:
   title: "Where the UK plugs in"
+  description: "Explore public EV charger coverage, power and local variation across the UK, using Department for Transport data to 1 July 2026."
+  site-url: "https://aloysius109.github.io/ev-charger-report/"
+  image: "https://aloysius109.github.io/assets/og/ev.png"
+  open-graph:
+    image-width: 1200
+    image-height: 630
+  twitter-card:
+    card-style: summary_large_image
   navbar: false
   page-footer:
     left: "[Kathryn Hopkins](https://aloysius109.github.io/) | Data as at 1 July 2026"
@@ -16,6 +24,8 @@ format:
   html:
     theme: cosmo
     css: styles.css
+    include-in-header: head-social.html
+    canonical-url: true
     toc: false
     smooth-scroll: true
     embed-resources: false

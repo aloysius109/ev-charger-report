@@ -1,6 +1,9 @@
 ---
 title: "Where the UK plugs in"
 subtitle: "Public EV chargers are spreading, but the network’s reach and speed still vary sharply by place."
+description: "Explore public EV charger coverage, power and local variation across the UK, using Department for Transport data to 1 July 2026."
+image: "https://aloysius109.github.io/assets/og/ev.png"
+image-alt: "Where the UK plugs in — a snapshot of public EV charger coverage across the United Kingdom."
 author: Kathryn Hopkins
 date: 2026-11-13
 date-format: "D MMMM YYYY"
