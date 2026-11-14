@@ -14,3 +14,7 @@ quarto render
 ```
 
 The analysis reads the original DfT ODS tables in `data/raw/`, regenerates charts in `assets/`, and writes local-authority selector data to `data/derived/`.
+
+## Checks
+
+Run `python scripts/check_report.py` after rebuilding to verify the report's headline figures, regional rates, power bands, explorer data and linked assets. The **Report checks** workflow rebuilds the derived data and runs this check on pushes and pull requests.
