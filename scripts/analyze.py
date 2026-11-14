@@ -4,6 +4,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -129,9 +130,10 @@ def charts(data, regions, power):
     values = list(power.values())
     colors = ["#9bbeb1", "#4d8b7d", "#e5b96d", "#be664d"]
     bars = ax.bar(labels, values, color=colors, width=.62)
-    ax.bar_label(bars, labels=[f"{v:,}" for v in values], padding=4, fontsize=9, color=INK)
+    ax.bar_label(bars, labels=[f"{v / 1000:.1f}K" for v in values], padding=4, fontsize=9, color=INK)
     ax.set_ylim(0, max(values) * 1.2)
     ax.set_ylabel("Public chargers", color=MUTED, fontsize=9)
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: "0" if value == 0 else f"{value / 1000:.0f}K"))
     ax.tick_params(axis="x", labelsize=9, colors=INK)
     ax.yaxis.grid(True, color=GRID, linewidth=.8)
     ax.set_axisbelow(True)
