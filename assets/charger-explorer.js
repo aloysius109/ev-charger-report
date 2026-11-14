@@ -49,8 +49,15 @@ function drawSeries(svg, area) {
     const points = values.map((value, i) => `${xPositions[i]},${y(value)}`).join(" ");
     svg.append(svgNode("polyline", { points, class: "area-trend-line", stroke: panel.color }));
     values.forEach((value, i) => {
-      svg.append(svgNode("circle", { cx: xPositions[i], cy: y(value), r: 5, fill: panel.color }));
-      svg.append(svgNode("text", { x: xPositions[i], y: y(value) - 10, "text-anchor": "middle", class: "area-point-label" }, fmt(value, 1)));
+      const pointY = y(value);
+      const nearTop = pointY < panel.top + 26;
+      const labelY = nearTop ? pointY + 20 : pointY - 10;
+      const firstPoint = i === 0;
+      const lastPoint = i === dates.length - 1;
+      const labelX = firstPoint ? xPositions[i] + 12 : lastPoint ? xPositions[i] - 12 : xPositions[i];
+      const anchor = firstPoint ? "start" : lastPoint ? "end" : "middle";
+      svg.append(svgNode("circle", { cx: xPositions[i], cy: pointY, r: 5, fill: panel.color }));
+      svg.append(svgNode("text", { x: labelX, y: labelY, "text-anchor": anchor, class: "area-point-label" }, fmt(value, 1)));
     });
     if (panel === panels[1]) {
       dates.forEach((date, i) => svg.append(svgNode("text", { x: xPositions[i], y: height - 12, "text-anchor": "middle", class: "area-tick" }, new Date(`${date}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))));
