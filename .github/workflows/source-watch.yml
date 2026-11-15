@@ -7,6 +7,9 @@ on:
     branches: [main]
     paths:
       - "scripts/check_sources.py"
+      - "scripts/refresh_report.py"
+      - "tests/**"
+      - "requirements.txt"
       - "sources/watch.json"
       - ".github/workflows/source-watch.yml"
 permissions:
@@ -27,6 +30,31 @@ jobs:
       - id: watch
         name: Compare the upstream sources with the recorded baseline
         run: python scripts/check_sources.py --report source-watch.md
+      - name: Install report dependencies
+        if: steps.watch.outputs.new_release == 'true'
+        run: python -m pip install -r requirements.txt
+      - name: Download the new release and compare the quoted figures
+        if: steps.watch.outputs.new_release == 'true'
+        run: >-
+          python scripts/refresh_report.py
+          --output "$RUNNER_TEMP/evci-refresh-review"
+          --report "$RUNNER_TEMP/refresh.md"
+      - name: Save the downloaded tables, candidate data and audit
+        if: always() && steps.watch.outputs.new_release == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: evci-refresh-review
+          path: ${{ runner.temp }}/evci-refresh-review/
+          retention-days: 30
+      - name: Append the comparison to the watch report
+        if: always() && steps.watch.outputs.new_release == 'true'
+        run: |
+          if [ -f "$RUNNER_TEMP/refresh.md" ]; then
+            printf '\n---\n\n' >> source-watch.md
+            cat "$RUNNER_TEMP/refresh.md" >> source-watch.md
+          else
+            printf '\n## EV refresh unavailable\n\nThe refresh failed before writing its comparison; inspect the workflow log and review artefact.\n' >> source-watch.md
+          fi
       - name: Report a moved source as an issue
         if: steps.watch.outputs.drift == 'true'
         env:

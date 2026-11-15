@@ -103,9 +103,26 @@ def inspect(source):
 
 
 def fingerprint(drift):
-    """A stable identifier for which sources are in which state, ignoring sizes and dates."""
-    state = ";".join(sorted(f"{result['id']}:{result['state']}" for result in drift))
+    """Identify source states, distinguishing each newly listed EVCI release."""
+    states = []
+    for result in drift:
+        state = f"{result['id']}:{result['state']}"
+        release = result.get("observed", {}).get("latest_release")
+        if release and result["state"] == "changed":
+            state += f":{release}"
+        states.append(state)
+    state = ";".join(sorted(states))
     return hashlib.sha256(state.encode("utf-8")).hexdigest()[:12]
+
+
+def has_new_release(results, sources):
+    baselines = {source["id"]: source.get("latest_release") for source in sources}
+    return any(
+        result["state"] == "changed"
+        and result.get("observed", {}).get("latest_release")
+        and result["observed"]["latest_release"] != baselines.get(result["id"])
+        for result in results
+    )
 
 
 def report_markdown(results, title):
@@ -148,6 +165,7 @@ def main():
     results = [inspect(source) for source in watch["sources"]]
     drift = [result for result in results if result["state"] != "unchanged"]
     report = report_markdown(results, watch.get("title", "Source watch"))
+    new_release = has_new_release(results, watch["sources"])
     if drift:
         report += f"\n<!-- source-watch:{fingerprint(drift)} -->\n"
     print(report)
@@ -162,6 +180,7 @@ def main():
     if output:
         with open(output, "a", encoding="utf-8") as handle:
             handle.write(f"drift={'true' if drift else 'false'}\n")
+            handle.write(f"new_release={'true' if new_release else 'false'}\n")
 
     if args.update:
         observed = {result["id"]: result for result in results}

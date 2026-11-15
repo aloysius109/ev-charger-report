@@ -1,0 +1,23 @@
+{
+  "release": "2026-10",
+  "quarter_date": "2026-10-01",
+  "added_authority": {
+    "code": "E09999999",
+    "name": "Synthetic Added Authority"
+  },
+  "authority_deltas": {
+    "count": 1,
+    "rapid_count": 0,
+    "rate": 0.2,
+    "rapid_rate": 0
+  },
+  "added_counts": {
+    "count": 50,
+    "rapid_count": 10,
+    "rate": 140.0,
+    "rapid_rate": 20.0
+  },
+  "uk_rate_delta": 0.3,
+  "sub_precision_london_delta": 0.01,
+  "power_standard_delta": 10
+}
