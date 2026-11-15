@@ -5,6 +5,8 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch, PathPatch
+from matplotlib.path import Path as MatplotlibPath
 from matplotlib.ticker import FuncFormatter
 import pandas as pd
 
@@ -13,8 +15,16 @@ RAW = ROOT / "data" / "raw"
 DERIVED = ROOT / "data" / "derived"
 ASSETS = ROOT / "assets"
 MEDIUM_IMAGES = ROOT / "medium-edition" / "images"
+BOUNDARIES = ROOT / "data" / "geo" / "local_authorities.geojson"
 CURRENT = "1 July 2026"
-MEDIUM_CHARTS = ("regional-coverage", "power-bands", "uk-network-trend")
+MAP_CHART = "charger-coverage-map"
+MEDIUM_CHARTS = ("regional-coverage", "power-bands", "uk-network-trend", MAP_CHART)
+CHARGER_RATE_BANDS = (
+    ("Under 100", 0, 100, "#b8d7c6"),
+    ("100 to under 150", 100, 150, "#4d8b7d"),
+    ("150 to under 200", 150, 200, "#e5b96d"),
+    ("200 or more", 200, float("inf"), "#be664d"),
+)
 
 INK, TEAL, GOLD, MUTED, GRID = "#20343a", "#247367", "#d68d38", "#65767a", "#e2e9e4"
 
@@ -108,6 +118,88 @@ def save_chart(fig, stem: str, medium: bool = False):
         fig.savefig(MEDIUM_IMAGES / f"{stem}.png", dpi=200, bbox_inches="tight", facecolor="white")
 
 
+def polygon_path(rings):
+    vertices = []
+    codes = []
+    for ring in rings:
+        points = [tuple(point[:2]) for point in ring]
+        if len(points) < 4:
+            continue
+        vertices.extend(points)
+        codes.extend([MatplotlibPath.MOVETO] + [MatplotlibPath.LINETO] * (len(points) - 2) + [MatplotlibPath.CLOSEPOLY])
+    return MatplotlibPath(vertices, codes) if vertices else None
+
+
+def geometry_paths(geometry):
+    if geometry["type"] == "Polygon":
+        path = polygon_path(geometry["coordinates"])
+        return [path] if path else []
+    if geometry["type"] == "MultiPolygon":
+        return [path for polygon in geometry["coordinates"] if (path := polygon_path(polygon))]
+    raise ValueError(f"Unsupported boundary geometry: {geometry['type']}")
+
+
+def build_map(data, medium=False):
+    payload = json.loads(BOUNDARIES.read_text(encoding="utf-8"))
+    boundaries = payload["features"]
+    by_code = {str(row.code): row.rate_jul for row in data.itertuples()}
+    boundary_codes = {feature["properties"]["code"] for feature in boundaries}
+    missing_codes = set(by_code) - boundary_codes
+    if missing_codes:
+        raise ValueError(f"No boundary geometry for local-authority codes: {sorted(missing_codes)}")
+    extra_codes = boundary_codes - set(by_code)
+    if extra_codes:
+        raise ValueError(f"Boundary data has no charger rates for codes: {sorted(extra_codes)}")
+
+    fig, ax = plt.subplots(figsize=(7.4, 12.2), layout="constrained")
+    london_ax = ax.inset_axes([.66, .64, .30, .24])
+    london_ax.set_facecolor("white")
+    band_counts = [0] * len(CHARGER_RATE_BANDS)
+    x_values, y_values = [], []
+    london_features = []
+    for feature in boundaries:
+        code = feature["properties"]["code"]
+        value = by_code[code]
+        band_index = next(
+            index for index, (_, lower, upper, _) in enumerate(CHARGER_RATE_BANDS)
+            if lower <= value < upper
+        )
+        color = CHARGER_RATE_BANDS[band_index][3]
+        band_counts[band_index] += 1
+        for path in geometry_paths(feature["geometry"]):
+            ax.add_patch(PathPatch(path, facecolor=color, edgecolor="white", linewidth=.35, zorder=2))
+            x_values.extend(path.vertices[:, 0])
+            y_values.extend(path.vertices[:, 1])
+            if code.startswith("E090000"):
+                london_features.append((path, color))
+
+    x_margin = (max(x_values) - min(x_values)) * .035
+    y_margin = (max(y_values) - min(y_values)) * .025
+    ax.set_xlim(min(x_values) - x_margin, max(x_values) + x_margin)
+    ax.set_ylim(min(y_values) - y_margin, max(y_values) + y_margin)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    ax.set_title("Public EV chargers per 100,000 residents, 1 July 2026", loc="left", color=INK, fontsize=14, fontweight="bold", pad=15)
+    for path, color in london_features:
+        london_ax.add_patch(PathPatch(path, facecolor=color, edgecolor="white", linewidth=.65))
+    london_ax.set_xlim(500_000, 570_000)
+    london_ax.set_ylim(150_000, 200_000)
+    london_ax.set_aspect("equal")
+    london_ax.set_title("London", color=INK, fontsize=9, pad=4)
+    london_ax.set_xticks([])
+    london_ax.set_yticks([])
+    for spine in london_ax.spines.values():
+        spine.set_color("#9caaa4")
+    legend = [
+        Patch(facecolor=color, edgecolor="white", label=f"{label} (n={count})")
+        for (label, _, _, color), count in zip(CHARGER_RATE_BANDS, band_counts)
+    ]
+    ax.legend(handles=legend, frameon=False, loc="lower center", bbox_to_anchor=(.5, -.015), ncol=2, fontsize=9)
+    save_chart(fig, MAP_CHART, medium)
+    plt.close(fig)
+    return band_counts
+
+
 def charts(data, regions, power, medium=False):
     fig, (ax_total, ax_rapid) = plt.subplots(ncols=2, figsize=(12, 6.3), sharey=True, layout="constrained", gridspec_kw={"width_ratios": [1.12, 1]})
     chosen = ["United Kingdom", "Northern Ireland", "North West", "Yorkshire and The Humber", "East Midlands", "North East", "East of England", "South West", "West Midlands", "South East", "Wales", "Scotland", "London"]
@@ -164,6 +256,7 @@ def charts(data, regions, power, medium=False):
     ax.legend(frameon=False, loc="upper left", ncol=2, fontsize=8)
     save_chart(fig, MEDIUM_CHARTS[2], medium)
     plt.close(fig)
+    return build_map(data, medium)
 
 
 def normalize_svgs():
@@ -178,7 +271,7 @@ def main(argv=None):
     ASSETS.mkdir(parents=True, exist_ok=True)
     DERIVED.mkdir(parents=True, exist_ok=True)
     data, regions, power = build_data()
-    charts(data, regions, power, medium=args.medium)
+    band_counts = charts(data, regions, power, medium=args.medium)
     normalize_svgs()
     latest = regions.loc[(regions.area == "United Kingdom") & (regions.date == "2026-07-01")].iloc[0]
     high, low = data.loc[data.rate_jul.idxmax()], data.loc[data.rate_jul.idxmin()]
@@ -186,6 +279,9 @@ def main(argv=None):
     print(f"UK coverage: {latest.total_per_100k:.1f} per 100k; {latest.rapid_per_100k:.1f} rapid or above per 100k.")
     print(f"Highest local rate: {high['name']} ({high.rate_jul:.1f}/100k); lowest: {low['name']} ({low.rate_jul:.1f}/100k).")
     print(f"January-July: {int((data.count_jul > data.count_jan).sum())} areas had a higher recorded count; note DfT's June data-feed correction.")
+    print("July charger-rate bands per 100,000: " + "; ".join(
+        f"{label}: {count}" for (label, _, _, _), count in zip(CHARGER_RATE_BANDS, band_counts)
+    ))
 
 
 if __name__ == "__main__":

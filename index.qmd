@@ -46,6 +46,14 @@ The number of plugs alone does not describe how useful a network is for a partic
 
 ![Number of public EV chargers by power band in the UK, 1 July 2026.](assets/power-bands.svg){fig-alt="The UK had 59,587 standard chargers, 32,697 standard plus, 14,891 rapid, and 13,996 ultra-rapid chargers."}
 
+## Where the chargers are
+
+The map groups local authorities by their July rate of public chargers per 100,000 residents. **90 local authorities are under 100; 112 are from 100 to under 150; 73 are from 150 to under 200; and 86 are 200 or more.** These descriptive bands are not DfT categories.
+
+![Public EV chargers per 100,000 residents in each UK local authority, 1 July 2026.](assets/charger-coverage-map.svg){fig-alt="A map of all 361 UK local authorities, shaded by public EV chargers per 100,000 residents on 1 July 2026: under 100, 100 to under 150, 150 to under 200, and 200 or more. Hammersmith and Fulham is in the highest band; North East Derbyshire is in the lowest."}
+
+Boundary polygons are the Office for National Statistics May 2023 ultra-generalised local-authority districts; charger rates are from the Department for Transport.
+
 ## Explore a local authority
 
 Select one of the 361 local authorities to see its latest charger count, provision per 100,000 residents, rapid-and-above provision, and the three quarterly readings available for 2026.
@@ -76,6 +84,7 @@ The analysis uses the Department for Transport’s July 2026 public EV charger t
 - [DfT July 2026 statistics and commentary](https://www.gov.uk/government/statistics/electric-vehicle-charging-infrastructure-statistics-1-july-2026/public-electric-vehicle-charging-infrastructure-statistics-1-july-2026)
 - [DfT data tables (EVCI)](https://www.gov.uk/government/statistical-data-sets/electric-vehicle-charging-infrastructure-statistics-data-tables-evci)
 - [ONS population estimates](https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates)
+- [ONS Open Geography Portal: May 2023 UK local-authority districts](https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Local_Authority_Districts_May_2023_UK_BUC_V2/FeatureServer)
 - [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
 
 Independent analysis by Kathryn Hopkins. Data downloaded 13 November 2026. The charger statistics are reused under the Open Government Licence v3.0.

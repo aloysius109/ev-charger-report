@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
-from analyze import MEDIUM_CHARTS
+from analyze import CHARGER_RATE_BANDS, MAP_CHART, MEDIUM_CHARTS
 
 ROOT = Path(__file__).resolve().parents[1]
 DATES = ["2026-01-01", "2026-04-01", "2026-07-01"]
@@ -42,6 +42,17 @@ def main():
     require(len(set(area_codes)) == 361, "Explorer JSON has missing or duplicate authority codes.")
     require(len(set(csv_codes)) == 361 and set(csv_codes) == set(area_codes),
             "Local-authority CSV codes do not match the explorer JSON.")
+
+    boundary_path = ROOT / "data" / "geo" / "local_authorities.geojson"
+    boundary_data = json.loads(boundary_path.read_text(encoding="utf-8"))
+    boundary_features = boundary_data.get("features", [])
+    boundary_codes = [feature.get("properties", {}).get("code") for feature in boundary_features]
+    require(boundary_data.get("crs", {}).get("properties", {}).get("name") == "EPSG:27700",
+            "Local-authority boundaries are not in the expected British National Grid projection.")
+    require(len(boundary_features) == 361 and len(set(boundary_codes)) == 361,
+            "Expected 361 unique local-authority boundary features.")
+    require(set(boundary_codes) == set(csv_codes),
+            "Local-authority boundary codes do not match the EV charger data.")
 
     csv_by_code = {row["code"]: row for row in rows}
     for area in areas:
@@ -110,6 +121,15 @@ def main():
     lowest = min(rows, key=lambda row: float(row["rate_jul"]))
     require(highest["name"] == "Hammersmith and Fulham" and lowest["name"] == "North East Derbyshire",
             "The highest or lowest local-authority rate no longer matches the report.")
+    band_counts = [
+        sum(lower <= float(row["rate_jul"]) < upper for row in rows)
+        for _, lower, upper, _ in CHARGER_RATE_BANDS
+    ]
+    band_claim = (
+        f"**{band_counts[0]} local authorities are under 100; {band_counts[1]} are from 100 to under 150; "
+        f"{band_counts[2]} are from 150 to under 200; and {band_counts[3]} are 200 or more.**"
+    )
+    require(sum(band_counts) == 361, "Charger-rate bands do not account for all 361 local authorities.")
 
     required_claims = [
         f"**{total:,} public electric-vehicle chargers**",
@@ -123,6 +143,7 @@ def main():
         f"{expected_power['Rapid']:,} rapid, and {expected_power['Ultra-rapid']:,} ultra-rapid chargers",
         highest["name"],
         lowest["name"],
+        band_claim,
         "361 local authorities",
         "the three quarters in the new series",
     ]
@@ -133,6 +154,7 @@ def main():
         "assets/regional-coverage.svg",
         "assets/power-bands.svg",
         "assets/uk-network-trend.svg",
+        f"assets/{MAP_CHART}.svg",
         "assets/charger-explorer.js",
     ]:
         require((ROOT / asset).is_file(), f"Report asset is missing: {asset}")
@@ -173,7 +195,7 @@ def main():
         target = ROOT / unquote(url.path)
         require(target.is_file(), f"Report link target does not exist: {link}")
 
-    print("Report QA passed: charger claims, authority schema, report assets/links, and Medium package are consistent.")
+    print("Report QA passed: charger claims, boundary coverage, authority schema, report assets/links, and Medium package are consistent.")
 
 
 if __name__ == "__main__":
