@@ -1,3 +1,4 @@
+import argparse
 import json
 from pathlib import Path
 
@@ -11,7 +12,9 @@ ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
 DERIVED = ROOT / "data" / "derived"
 ASSETS = ROOT / "assets"
+MEDIUM_IMAGES = ROOT / "medium-edition" / "images"
 CURRENT = "1 July 2026"
+MEDIUM_CHARTS = ("regional-coverage", "power-bands", "uk-network-trend")
 
 INK, TEAL, GOLD, MUTED, GRID = "#20343a", "#247367", "#d68d38", "#65767a", "#e2e9e4"
 
@@ -98,7 +101,14 @@ def plot_style(ax):
     ax.set_axisbelow(True)
 
 
-def charts(data, regions, power):
+def save_chart(fig, stem: str, medium: bool = False):
+    fig.savefig(ASSETS / f"{stem}.svg", bbox_inches="tight", facecolor="white")
+    if medium:
+        MEDIUM_IMAGES.mkdir(parents=True, exist_ok=True)
+        fig.savefig(MEDIUM_IMAGES / f"{stem}.png", dpi=200, bbox_inches="tight", facecolor="white")
+
+
+def charts(data, regions, power, medium=False):
     fig, (ax_total, ax_rapid) = plt.subplots(ncols=2, figsize=(12, 6.3), sharey=True, layout="constrained", gridspec_kw={"width_ratios": [1.12, 1]})
     chosen = ["United Kingdom", "Northern Ireland", "North West", "Yorkshire and The Humber", "East Midlands", "North East", "East of England", "South West", "West Midlands", "South East", "Wales", "Scotland", "London"]
     latest = regions.loc[regions.date == "2026-07-01"].set_index("area").reindex(chosen).dropna().sort_values("total_per_100k")
@@ -123,7 +133,7 @@ def charts(data, regions, power):
         ax.tick_params(axis="x", colors=MUTED, labelsize=8, length=0, pad=6)
         ax.grid(axis="x", color=GRID, linewidth=.8)
         ax.set_axisbelow(True)
-    fig.savefig(ASSETS / "regional-coverage.svg", bbox_inches="tight", facecolor="white")
+    save_chart(fig, MEDIUM_CHARTS[0], medium)
     plt.close(fig)
     fig, ax = plt.subplots(figsize=(9.6, 4.6), layout="constrained")
     labels = list(power.keys())
@@ -138,7 +148,7 @@ def charts(data, regions, power):
     ax.yaxis.grid(True, color=GRID, linewidth=.8)
     ax.set_axisbelow(True)
     ax.spines[["top", "right", "left", "bottom"]].set_visible(False)
-    fig.savefig(ASSETS / "power-bands.svg", bbox_inches="tight", facecolor="white")
+    save_chart(fig, MEDIUM_CHARTS[1], medium)
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(9.8, 4.7), layout="constrained")
@@ -152,7 +162,7 @@ def charts(data, regions, power):
     ax.set_axisbelow(True)
     ax.spines[["top", "right", "left", "bottom"]].set_visible(False)
     ax.legend(frameon=False, loc="upper left", ncol=2, fontsize=8)
-    fig.savefig(ASSETS / "uk-network-trend.svg", bbox_inches="tight", facecolor="white")
+    save_chart(fig, MEDIUM_CHARTS[2], medium)
     plt.close(fig)
 
 
@@ -161,11 +171,14 @@ def normalize_svgs():
         lines = path.read_text(encoding="utf-8").splitlines()
         path.write_text("\n".join(line.rstrip() for line in lines) + "\n", encoding="utf-8")
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Build EV charger report assets and derived data.")
+    parser.add_argument("--medium", action="store_true", help="also export static PNGs for the Medium edition")
+    args = parser.parse_args(argv)
     ASSETS.mkdir(parents=True, exist_ok=True)
     DERIVED.mkdir(parents=True, exist_ok=True)
     data, regions, power = build_data()
-    charts(data, regions, power)
+    charts(data, regions, power, medium=args.medium)
     normalize_svgs()
     latest = regions.loc[(regions.area == "United Kingdom") & (regions.date == "2026-07-01")].iloc[0]
     high, low = data.loc[data.rate_jul.idxmax()], data.loc[data.rate_jul.idxmin()]

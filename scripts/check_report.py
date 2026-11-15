@@ -6,6 +6,8 @@ import re
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
+from analyze import MEDIUM_CHARTS
+
 ROOT = Path(__file__).resolve().parents[1]
 DATES = ["2026-01-01", "2026-04-01", "2026-07-01"]
 COUNTRIES = {"E": "England", "W": "Wales", "S": "Scotland", "N": "Northern Ireland"}
@@ -135,6 +137,34 @@ def main():
     ]:
         require((ROOT / asset).is_file(), f"Report asset is missing: {asset}")
 
+    medium = ROOT / "medium-edition"
+    article_path = medium / "article.html"
+    publishing_path = medium / "PUBLISHING.txt"
+    image_dir = medium / "images"
+    require(article_path.is_file(), "Medium article is missing: medium-edition/article.html")
+    require(publishing_path.is_file() and publishing_path.stat().st_size > 0,
+            "Medium publishing notes are missing or empty.")
+    expected_images = {f"{stem}.png" for stem in MEDIUM_CHARTS}
+    actual_images = {path.name for path in image_dir.glob("*.png")} if image_dir.is_dir() else set()
+    require(actual_images == expected_images,
+            f"Medium image set differs from generated chart list: expected {sorted(expected_images)}, found {sorted(actual_images)}")
+    article = article_path.read_text(encoding="utf-8")
+    require('rel="canonical" href="https://aloysius109.github.io/ev-charger-report/"' in article,
+            "Medium article is missing its canonical link to the live report.")
+    require(not re.search(r"<script\b|class=[\"'][^\"']*(?:quarto-|cell-output|cell-input)", article, re.I),
+            "Medium article must not contain scripts or Quarto-specific classes.")
+    image_tags = re.findall(r"<img\b[^>]*>", article, re.I | re.S)
+    require(len(image_tags) == len(expected_images), "Medium article image count does not match the generated chart list.")
+    article_images = set()
+    for image_tag in image_tags:
+        src = re.search(r"\bsrc=[\"']([^\"']+)[\"']", image_tag, re.I)
+        alt = re.search(r"\balt=[\"']([^\"']*)[\"']", image_tag, re.I)
+        require(src is not None and alt is not None and alt.group(1).strip(),
+                "Every Medium chart image must have a local source and non-empty alt text.")
+        article_images.add(Path(src.group(1)).name)
+        require(src.group(1).startswith("images/"), f"Medium article image must be local: {src.group(1)}")
+    require(article_images == expected_images, "Medium article references do not match the generated chart list.")
+
     links = re.findall(r"!?\[[^\]]*\]\(([^)]+)\)", report)
     for link in links:
         url = urlsplit(link)
@@ -143,7 +173,7 @@ def main():
         target = ROOT / unquote(url.path)
         require(target.is_file(), f"Report link target does not exist: {link}")
 
-    print("Report QA passed: charger totals, regional rates, power bands, authority schema, and report assets/links are consistent.")
+    print("Report QA passed: charger claims, authority schema, report assets/links, and Medium package are consistent.")
 
 
 if __name__ == "__main__":

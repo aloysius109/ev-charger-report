@@ -79,3 +79,7 @@ The analysis uses the Department for Transport’s July 2026 public EV charger t
 - [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
 
 Independent analysis by Kathryn Hopkins. Data downloaded 13 November 2026. The charger statistics are reused under the Open Government Licence v3.0.
+
+## Related reports
+
+- [The affordability squeeze](https://aloysius109.github.io/housing-affordability-report/) — both reports compare local-authority patterns across England and Wales.

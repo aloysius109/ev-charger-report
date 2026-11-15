@@ -1,0 +1,13 @@
+Medium edition publishing notes
+
+From the repository root, run `python scripts/analyze.py --medium` to regenerate the report assets and the three Medium PNGs.
+
+1. Copy the rendered text from article.html into a new Medium story; do not paste the HTML source as a code block.
+2. Upload the three images in medium-edition/images in article order: regional-coverage.png, power-bands.png, uk-network-trend.png.
+3. Keep each figure caption with its chart and set the matching descriptive alt text through Medium's image controls where available.
+4. Keep the link to the full interactive report near the beginning; the local-authority explorer and data downloads remain on the report website.
+5. Check headings, bold text, external links and the chart labels in Medium preview, especially on mobile.
+6. Set the canonical link to https://aloysius109.github.io/ev-charger-report/ in story settings.
+7. Review the story before publishing. Creating this package does not publish or update anything on Medium or GitHub Pages.
+
+This is a standalone article adaptation with three static charts. It has no Quarto classes, scripts, local page links or interactive controls. Chart files are provided separately for upload.

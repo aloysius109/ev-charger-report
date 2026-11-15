@@ -18,3 +18,7 @@ The analysis reads the original DfT ODS tables in `data/raw/`, regenerates chart
 ## Checks
 
 Run `python scripts/check_report.py` after rebuilding to verify the report's headline figures, regional rates, power bands, explorer data and linked assets. The **Report checks** workflow rebuilds the derived data and runs this check on pushes and pull requests.
+
+## Analytics
+
+The report uses GoatCounter, configured in `analytics.html`. Update the `data-goatcounter` URL in that partial if the account changes. It is used without cookies, a consent banner or personal-data collection.
