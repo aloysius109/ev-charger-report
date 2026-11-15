@@ -1,0 +1,42 @@
+{
+  "title": "EV charger report \u2014 source watch",
+  "note": "Baselined against the DfT 1 July 2026 release used by this report. Re-baseline with `python scripts/check_sources.py --update` only after a new release has been adopted into the report.",
+  "sources": [
+    {
+      "id": "dft-evci-data-tables",
+      "label": "DfT electric vehicle charging infrastructure data tables (EVCI)",
+      "url": "https://www.gov.uk/government/statistical-data-sets/electric-vehicle-charging-infrastructure-statistics-data-tables-evci",
+      "check": "links",
+      "pattern": "evci\\d+_(\\d{4}-\\d{2})[^\"/]*\\.ods",
+      "latest_release": "2026-07",
+      "files": [
+        "evci0101_2026-07_EV_chargers_by_region_and_country_UK.ods",
+        "evci0102_2026-07_EV_chargers_by_local_authority_UK.ods",
+        "evci0103_2026-07_EV_chargers_by_parliamentary_constituency_UK.ods",
+        "evci0104_2026-07_EV_chargers_by_rural_urban_classification_EW.ods",
+        "evci0105_2026-07_EV_chargers_by_combined_authority_EN.ods",
+        "evci0106_2026-07_EV_chargers_by_county_council_EN.ods",
+        "evci0201_2026-07_EV_chargers_by_power_band_UK.ods",
+        "evci0301_2026-07_EV_chargers_by_location_category_UK.ods",
+        "evci0302_2026-07_EV_chargers_by_location_classification_UK.ods",
+        "evci0401_2026-07_plug_in_and_battery_electric_vehicles_per_public_EV_charger.ods",
+        "evci5001_2026-07_orcs_uk.ods",
+        "evci5002_2026-07_levi_eng.ods",
+        "evci5101_2026-07_evcg_flats_and_renters_uk.ods",
+        "evci5102_2026-07_xps_uk.ods",
+        "evci5103_2026-07_evcg_residential_landlords_uk.ods",
+        "evci5104_2026-07_evcg_residential_landlords_infrastructure_uk.ods",
+        "evci5201_2026-07_wcs_uk.ods",
+        "evci5202_2026-07_wcs_education_uk.ods",
+        "evci5203_2026-07_evcg_staff_and_fleets_uk.ods",
+        "evci5204_2026-07_evcg_commercial_landlords_uk.ods",
+        "evci5301_2026-07_ncas_eng.ods",
+        "evci9001_2026-07_EV_charging_devices_UK.ods",
+        "evci9501_2026-07_drs_uk.ods",
+        "evci9502_2026-07_evhs_uk.ods"
+      ],
+      "note": "The report reads evci0101, evci0102 and evci0201 from this page; a new release tag means a new quarter is published."
+    }
+  ],
+  "checked_utc": "2026-11-15T09:27:36Z"
+}
