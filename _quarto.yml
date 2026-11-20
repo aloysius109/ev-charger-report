@@ -3,6 +3,8 @@ project:
   output-dir: _site
   render:
     - index.qmd
+  post-render:
+    - python scripts/publish_summary.py --article medium-edition/article.html --images medium-edition/images --output _site --canonical https://aloysius109.github.io/ev-charger-report/
   resources:
     - assets/charger-explorer.js
     - data/derived/charger_data.json
